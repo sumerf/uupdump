@@ -43,6 +43,12 @@ const includeUpdates = parseBoolean(args.includeUpdates ?? process.env.UUP_INCLU
 const cleanup = parseBoolean(args.cleanup ?? process.env.UUP_CLEANUP ?? "0");
 const netFx3 = parseBoolean(args.netFx3 ?? process.env.UUP_NETFX3 ?? "0");
 const outDir = args.outDir ?? process.env.UUP_OUT_DIR ?? "uup-work";
+const skipBuilds = new Set(
+  String(args.skipBuilds ?? process.env.UUP_SKIP_BUILDS ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+);
 
 if (!["wim", "esd"].includes(imageFormat)) {
   throw new Error(`Unknown image format "${imageFormat}". Available: wim, esd`);
@@ -50,7 +56,7 @@ if (!["wim", "esd"].includes(imageFormat)) {
 
 await mkdir(outDir, { recursive: true });
 
-const build = await findLatestBuild(search, arch, target?.titlePattern);
+const build = await findLatestBuild(search, arch, target?.titlePattern, skipBuilds);
 await ensureLanguage(build.uuid, language);
 const editions = await resolveEditions(build.uuid, language, requestedEdition);
 const editionParam = editions.map((item) => item.toLowerCase()).join(";");
@@ -120,17 +126,19 @@ async function getJson(url) {
   return json.response;
 }
 
-async function findLatestBuild(query, wantedArch, titlePattern) {
+async function findLatestBuild(query, wantedArch, titlePattern, skipBuilds) {
   const url = `${API_BASE}/listid.php?search=${encodeURIComponent(query)}&sortByDate=1`;
   const response = await getJson(url);
   const builds = Object.values(response.builds ?? {});
   const candidates = builds
     .filter((item) => item.arch?.toLowerCase() === wantedArch)
     .filter((item) => titlePattern ? titlePattern.test(item.title ?? "") : isInstallBuild(item.title ?? ""))
+    .filter((item) => !skipBuilds.has(String(item.build)))
     .sort((a, b) => Number(b.created ?? 0) - Number(a.created ?? 0));
 
   if (candidates.length === 0) {
-    throw new Error(`No build found for search="${query}" arch="${wantedArch}"`);
+    const skipped = skipBuilds.size > 0 ? ` skipped="${[...skipBuilds].join(",")}"` : "";
+    throw new Error(`No build found for search="${query}" arch="${wantedArch}"${skipped}`);
   }
 
   return candidates[0];

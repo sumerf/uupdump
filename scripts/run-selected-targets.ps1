@@ -42,6 +42,7 @@ else {
 }
 
 $failures = @()
+$maxBuildAttempts = 5
 
 foreach ($targetId in $selectedTargets) {
   $config = $targets[$targetId]
@@ -68,14 +69,34 @@ foreach ($targetId in $selectedTargets) {
     $env:UUP_CLEANUP = if ($Cleanup) { "1" } else { "0" }
     $env:UUP_NETFX3 = if ($NetFx3) { "1" } else { "0" }
 
-    npm run resolve
-    if ($LASTEXITCODE -ne 0) {
-      throw "Resolve failed for $targetId with exit code $LASTEXITCODE"
+    $skippedBuilds = @()
+    $built = $false
+    for ($attempt = 1; $attempt -le $maxBuildAttempts; $attempt++) {
+      Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
+      Remove-Item -LiteralPath $outputDir -Recurse -Force -ErrorAction SilentlyContinue
+      $env:UUP_SKIP_BUILDS = $skippedBuilds -join ","
+
+      Write-Host "Build attempt $attempt of $maxBuildAttempts for $targetId. Skipped builds: $env:UUP_SKIP_BUILDS"
+      npm run resolve
+      if ($LASTEXITCODE -ne 0) {
+        throw "Resolve failed for $targetId with exit code $LASTEXITCODE"
+      }
+
+      $metadataPath = Join-Path $workDir "metadata.json"
+      $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+
+      pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-uup-build.ps1 -WorkDir $workDir -OutputDir $outputDir -ImageFormat $ImageFormat -IncludeUpdates:$IncludeUpdates -Cleanup:$Cleanup -NetFx3:$NetFx3
+      if ($LASTEXITCODE -eq 0) {
+        $built = $true
+        break
+      }
+
+      Write-Warning "Build failed for $targetId build $($metadata.build) with exit code $LASTEXITCODE."
+      $skippedBuilds += [string]$metadata.build
     }
 
-    pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-uup-build.ps1 -WorkDir $workDir -OutputDir $outputDir -ImageFormat $ImageFormat -IncludeUpdates:$IncludeUpdates -Cleanup:$Cleanup -NetFx3:$NetFx3
-    if ($LASTEXITCODE -ne 0) {
-      throw "Build failed for $targetId with exit code $LASTEXITCODE"
+    if (-not $built) {
+      throw "Build failed for $targetId after $maxBuildAttempts attempts. Skipped builds: $($skippedBuilds -join ', ')"
     }
 
     pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/publish-release.ps1 -OutputDir $outputDir
