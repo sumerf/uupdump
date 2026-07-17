@@ -66,6 +66,8 @@ uup-win11-25h2-26200.8875-amd64-zh-cn-all
 
 重复运行同一个构建时，工作流会更新 Release 并覆盖同名附件。
 
+发布新 Release 后，脚本会自动删除同一目标的旧 Release，只保留最新版本。
+
 `IMAGE_INFO.txt` 会包含镜像标题、构建号、架构、语言、版本、UUP dump UUID、来源、附件大小和 SHA256。
 
 GitHub Release 单个附件有大小限制。ISO 超过限制时，发布脚本会自动拆成：

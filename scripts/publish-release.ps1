@@ -71,6 +71,8 @@ if ($LASTEXITCODE -ne 0) {
   throw "Failed to upload release assets for $tag"
 }
 
+Remove-OlderReleases -CurrentTag $tag -Prefix "uup-$targetPart-" -Keep 1
+
 "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 "RELEASE_URL=https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 Write-Host "Published release: https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag"
@@ -188,4 +190,32 @@ Use SHA256SUMS.txt to verify all release assets.
 "@
 
   $info | Out-File -LiteralPath (Join-Path $Directory "IMAGE_INFO.txt") -Encoding utf8
+}
+
+function Remove-OlderReleases {
+  param(
+    [string]$CurrentTag,
+    [string]$Prefix,
+    [int]$Keep = 1
+  )
+
+  $releasesJson = gh release list --limit 100 --json tagName,createdAt
+  if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Unable to list releases for cleanup."
+    return
+  }
+
+  $oldReleases = $releasesJson |
+    ConvertFrom-Json |
+    Where-Object { $_.tagName -like "$Prefix*" -and $_.tagName -ne $CurrentTag } |
+    Sort-Object createdAt -Descending |
+    Select-Object -Skip ([Math]::Max(0, $Keep - 1))
+
+  foreach ($release in $oldReleases) {
+    Write-Host "Deleting older release $($release.tagName)"
+    gh release delete $release.tagName --yes --cleanup-tag
+    if ($LASTEXITCODE -ne 0) {
+      Write-Warning "Failed to delete older release $($release.tagName)"
+    }
+  }
 }
