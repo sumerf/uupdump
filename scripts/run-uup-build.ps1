@@ -5,6 +5,51 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Patch-UupScripts {
+  param(
+    [string]$Root
+  )
+
+  $ariaScripts = Get-ChildItem -LiteralPath $Root -Recurse -Filter "get_aria2.ps1" -File
+  foreach ($script in $ariaScripts) {
+    $content = Get-Content -LiteralPath $script.FullName -Raw
+    if ($content -notmatch "Get-FileHash") {
+      continue
+    }
+
+    $shim = @'
+if (-not (Get-Command Get-FileHash -ErrorAction SilentlyContinue)) {
+  function Get-FileHash {
+    param(
+      [string]$Path,
+      [string]$Algorithm = "SHA256"
+    )
+
+    $resolved = Resolve-Path -LiteralPath $Path
+    $stream = [System.IO.File]::OpenRead($resolved)
+    try {
+      $hashAlgorithm = [System.Security.Cryptography.HashAlgorithm]::Create($Algorithm)
+      $hashBytes = $hashAlgorithm.ComputeHash($stream)
+      $hash = -join ($hashBytes | ForEach-Object { $_.ToString("x2") })
+      [pscustomobject]@{
+        Algorithm = $Algorithm
+        Hash = $hash
+        Path = $resolved.Path
+      }
+    }
+    finally {
+      $stream.Dispose()
+    }
+  }
+}
+
+'@
+
+    Set-Content -LiteralPath $script.FullName -Value ($shim + $content) -Encoding UTF8
+    Write-Host "Patched PowerShell hash compatibility in $($script.FullName)"
+  }
+}
+
 $workPath = Resolve-Path -LiteralPath $WorkDir
 $metadataPath = Join-Path $workPath "metadata.json"
 if (-not (Test-Path -LiteralPath $metadataPath)) {
@@ -28,6 +73,8 @@ $converter = Get-ChildItem -LiteralPath $extractPath -Recurse -Filter "uup_downl
 if (-not $converter) {
   throw "uup_download_windows.cmd was not found in the package."
 }
+
+Patch-UupScripts -Root $extractPath
 
 Push-Location -LiteralPath $converter.DirectoryName
 try {
