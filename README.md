@@ -7,7 +7,7 @@
 - 目标：`win11-25h2`
 - 架构：`amd64`
 - 语言：`zh-cn`
-- 版本：由目标预设自动决定，普通版本为 `ALL`，LTSC 目标为 `LTSC`
+- 版本：由目标预设自动决定，默认为 `ALL`
 
 ## 本地测试
 
@@ -27,9 +27,7 @@ npm run build:uup
 
 - `Build Windows 11 25H2 ISO`: `amd64`, `arm64`
 - `Build Windows 11 26H1 ISO`: `amd64`, `arm64`
-- `Build Windows 11 LTSC 2024 ISO`: `amd64`
 - `Build Windows 10 22H2 ISO`: `amd64`, `arm64`, `x86`
-- `Build Windows 10 LTSC 2021 ISO`: `amd64`
 
 `Build UUP ISO` 是总入口，只用于手动或每月自动构建全部目标；总入口固定使用 `amd64`，避免显示不适用于部分目标的架构选项。
 
@@ -63,11 +61,9 @@ npm run build:uup
 
 - `win11-25h2`: Windows 11 25H2
 - `win11-26h1`: Windows 11 26H1
-- `win11-ltsc-2024`: Windows 11 LTSC 2024
 - `win10-22h2`: Windows 10 22H2
-- `win10-ltsc-2021`: Windows 10 LTSC 2021
 
-定时运行和总入口会依次尝试构建以上全部目标。GitHub Actions 页面里会显示一个 `build` job，并在里面按步骤显示 `Build win11-25h2`、`Build win11-26h1` 等目标。总入口允许单个目标失败；如果 UUP dump 暂时没有提供某个 LTSC 版本，其他目标仍会继续构建并发布。
+定时运行和总入口会依次尝试构建以上全部目标。GitHub Actions 页面里会显示一个 `build` job，并在里面按步骤显示 `Build win11-25h2`、`Build win11-26h1`、`Build win10-22h2`。
 
 Release 的 tag 会自动生成，例如：
 
@@ -93,12 +89,7 @@ xxx.iso.part002
 
 ## 手动选择版本
 
-目标预设会自动选择 edition：
-
-- 普通目标：`ALL`，构建该语言下全部可用版本
-- LTSC 目标：`LTSC`，尝试构建 `ENTERPRISES` 和 `IOTENTERPRISES`
-
-LTSC 是否能生成取决于 UUP dump 当前构建和语言是否列出 `ENTERPRISES` / `IOTENTERPRISES`。如果接口没有提供这些 edition，单独运行 LTSC workflow 会失败，总入口会跳过失败目标并继续后面的构建。
+目标预设会自动选择 `ALL`，构建该语言下全部可用版本。
 
 也可以本地指定：
 
@@ -112,7 +103,5 @@ npm run resolve
 - `PROFESSIONAL`: Windows Pro
 - `CORE`: Windows Home
 - `CORECOUNTRYSPECIFIC`: Windows Home China
-- `ENTERPRISES`: Windows Enterprise LTSC
-- `IOTENTERPRISES`: Windows IoT Enterprise LTSC
 
 如果版本或语言不可用，`scripts/resolve-uup.mjs` 会直接输出 UUP dump 返回的可选列表。

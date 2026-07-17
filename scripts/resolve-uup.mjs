@@ -18,23 +18,11 @@ const TARGETS = {
     edition: "ALL",
     titlePattern: /^Windows 11, version 26H1/i
   },
-  "win11-ltsc-2024": {
-    label: "Windows 11 LTSC 2024",
-    search: "Windows 11 LTSC 2024",
-    edition: "LTSC",
-    titlePattern: /LTSC|Enterprise/i
-  },
   "win10-22h2": {
     label: "Windows 10 22H2",
     search: "Windows 10 22H2",
     edition: "ALL",
     titlePattern: /Feature update to Windows 10, version 22H2/i
-  },
-  "win10-ltsc-2021": {
-    label: "Windows 10 LTSC 2021",
-    search: "Windows 10 LTSC 2021",
-    edition: "LTSC",
-    titlePattern: /LTSC|Enterprise/i
   }
 };
 
@@ -49,7 +37,7 @@ const arch = (args.arch ?? process.env.UUP_ARCH ?? "amd64").toLowerCase();
 const search = args.search ?? process.env.UUP_SEARCH ?? target?.search ?? "Windows 11 25H2";
 const language = (args.lang ?? process.env.UUP_LANG ?? "zh-cn").toLowerCase();
 const editionInput = (args.edition ?? process.env.UUP_EDITION ?? target?.edition ?? "ALL").toUpperCase();
-const requestedEdition = editionInput === "LTSC" ? "ENTERPRISES,IOTENTERPRISES" : editionInput;
+const requestedEdition = editionInput;
 const imageFormat = (args.imageFormat ?? process.env.UUP_IMAGE_FORMAT ?? "wim").toLowerCase();
 const includeUpdates = parseBoolean(args.includeUpdates ?? process.env.UUP_INCLUDE_UPDATES ?? "1");
 const cleanup = parseBoolean(args.cleanup ?? process.env.UUP_CLEANUP ?? "0");

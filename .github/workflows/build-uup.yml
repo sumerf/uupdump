@@ -61,4 +61,4 @@ jobs:
       netfx3: ${{ github.event.inputs.netfx3 == 'true' }}
       image-format: ${{ github.event.inputs.image_format || 'wim' }}
       all: true
-      allow-failures: true
+      allow-failures: false

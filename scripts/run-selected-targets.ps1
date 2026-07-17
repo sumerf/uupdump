@@ -24,20 +24,10 @@ $targets = [ordered]@{
     Edition = "ALL"
     Arch = @("amd64", "arm64")
   }
-  "win11-ltsc-2024" = @{
-    Search = "Windows 11 LTSC 2024"
-    Edition = "LTSC"
-    Arch = @("amd64")
-  }
   "win10-22h2" = @{
     Search = "Windows 10 22H2"
     Edition = "ALL"
     Arch = @("amd64", "arm64", "x86")
-  }
-  "win10-ltsc-2021" = @{
-    Search = "Windows 10 LTSC 2021"
-    Edition = "LTSC"
-    Arch = @("amd64")
   }
 }
 
