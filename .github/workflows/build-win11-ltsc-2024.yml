@@ -1,0 +1,23 @@
+name: Build Windows 11 LTSC 2024 ISO
+run-name: Build Windows 11 LTSC 2024 - amd64 ${{ github.event.inputs.lang || 'zh-cn' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      lang:
+        description: Language pack
+        required: true
+        default: zh-cn
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-build-uup.yml
+    with:
+      target: win11-ltsc-2024
+      arch: amd64
+      lang: ${{ github.event.inputs.lang || 'zh-cn' }}
+      all: false
+

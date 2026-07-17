@@ -23,7 +23,15 @@ npm run build:uup
 
 ## GitHub Actions
 
-把 `D:\uup` 推到 GitHub 仓库后，打开 Actions 页面，手动运行 `Build UUP ISO`。
+把 `D:\uup` 推到 GitHub 仓库后，打开 Actions 页面，推荐运行对应版本的专用 workflow：
+
+- `Build Windows 11 25H2 ISO`: `amd64`, `arm64`
+- `Build Windows 11 26H1 ISO`: `amd64`, `arm64`
+- `Build Windows 11 LTSC 2024 ISO`: `amd64`
+- `Build Windows 10 22H2 ISO`: `amd64`, `arm64`, `x86`
+- `Build Windows 10 LTSC 2021 ISO`: `amd64`
+
+`Build UUP ISO` 是总入口，用于手动 `all` 或每月自动构建；总入口固定使用 `amd64`，避免显示不适用于部分目标的架构选项。
 
 工作流也会在每月第二个周二 18:00 UTC 自动运行一次。构建完成后，ISO、`IMAGE_INFO.txt`、`metadata.json` 和 `SHA256SUMS.txt` 会自动挂到 GitHub Release，同时也会作为 artifact 上传，保留 7 天。
 

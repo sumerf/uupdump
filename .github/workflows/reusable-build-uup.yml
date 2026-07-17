@@ -1,0 +1,67 @@
+name: Reusable UUP Build
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      lang:
+        required: true
+        type: string
+      all:
+        required: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 1440
+    env:
+      SELECTED_TARGET: ${{ inputs.target }}
+      SELECTED_ARCH: ${{ inputs.arch }}
+      SELECTED_LANG: ${{ inputs.lang }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Show selected build target
+        shell: pwsh
+        run: |
+          "### UUP build target" >> $env:GITHUB_STEP_SUMMARY
+          "" >> $env:GITHUB_STEP_SUMMARY
+          "- Target: ``$env:SELECTED_TARGET``" >> $env:GITHUB_STEP_SUMMARY
+          "- Architecture: ``$env:SELECTED_ARCH``" >> $env:GITHUB_STEP_SUMMARY
+          "- Language: ``$env:SELECTED_LANG``" >> $env:GITHUB_STEP_SUMMARY
+          "- Mode: ``$(if ('${{ inputs.all }}' -eq 'true') { 'all targets' } else { 'single target' })``" >> $env:GITHUB_STEP_SUMMARY
+          Write-Host "Target: $env:SELECTED_TARGET"
+          Write-Host "Architecture: $env:SELECTED_ARCH"
+          Write-Host "Language: $env:SELECTED_LANG"
+
+      - name: Build and publish selected target
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -All:${{ inputs.all }}
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uup-iso
+          path: uup-output-*/*
+          if-no-files-found: error
+          retention-days: 7
+

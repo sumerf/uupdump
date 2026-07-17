@@ -11,22 +11,27 @@ $targets = [ordered]@{
   "win11-25h2" = @{
     Search = "Windows 11 25H2"
     Edition = "ALL"
+    Arch = @("amd64", "arm64")
   }
   "win11-26h1" = @{
     Search = "Windows 11 26H1"
     Edition = "ALL"
+    Arch = @("amd64", "arm64")
   }
   "win11-ltsc-2024" = @{
     Search = "Windows 11 LTSC 2024"
     Edition = "LTSC"
+    Arch = @("amd64")
   }
   "win10-22h2" = @{
     Search = "Windows 10 22H2"
     Edition = "ALL"
+    Arch = @("amd64", "arm64", "x86")
   }
   "win10-ltsc-2021" = @{
     Search = "Windows 10 LTSC 2021"
     Edition = "LTSC"
+    Arch = @("amd64")
   }
 }
 
@@ -49,6 +54,10 @@ foreach ($targetId in $selectedTargets) {
 
   Write-Host "::group::Build $targetId"
   try {
+    if ($config.Arch -notcontains $Arch) {
+      throw "Architecture '$Arch' is not available for $targetId. Available: $($config.Arch -join ', ')"
+    }
+
     Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $outputDir -Recurse -Force -ErrorAction SilentlyContinue
 

@@ -1,0 +1,31 @@
+name: Build Windows 11 26H1 ISO
+run-name: Build Windows 11 26H1 - ${{ github.event.inputs.arch || 'amd64' }} ${{ github.event.inputs.lang || 'zh-cn' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: Architecture
+        required: true
+        default: amd64
+        type: choice
+        options:
+          - amd64
+          - arm64
+      lang:
+        description: Language pack
+        required: true
+        default: zh-cn
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-build-uup.yml
+    with:
+      target: win11-26h1
+      arch: ${{ github.event.inputs.arch || 'amd64' }}
+      lang: ${{ github.event.inputs.lang || 'zh-cn' }}
+      all: false
+
