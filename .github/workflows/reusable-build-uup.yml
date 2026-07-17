@@ -15,6 +15,10 @@ on:
       all:
         required: true
         type: boolean
+      allow-failures:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -51,11 +55,62 @@ jobs:
           Write-Host "Language: $env:SELECTED_LANG"
 
       - name: Build and publish selected target
+        if: ${{ !inputs.all }}
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -All:${{ inputs.all }}
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG
+
+      - name: Build win11-25h2
+        if: ${{ inputs.all }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_FAILURES: ${{ inputs.allow-failures }}
+        run: |
+          $allowFailures = $env:ALLOW_FAILURES -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-25h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+
+      - name: Build win11-26h1
+        if: ${{ inputs.all }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_FAILURES: ${{ inputs.allow-failures }}
+        run: |
+          $allowFailures = $env:ALLOW_FAILURES -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-26h1 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+
+      - name: Build win11-ltsc-2024
+        if: ${{ inputs.all }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_FAILURES: ${{ inputs.allow-failures }}
+        run: |
+          $allowFailures = $env:ALLOW_FAILURES -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-ltsc-2024 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+
+      - name: Build win10-22h2
+        if: ${{ inputs.all }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_FAILURES: ${{ inputs.allow-failures }}
+        run: |
+          $allowFailures = $env:ALLOW_FAILURES -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-22h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+
+      - name: Build win10-ltsc-2021
+        if: ${{ inputs.all }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_FAILURES: ${{ inputs.allow-failures }}
+        run: |
+          $allowFailures = $env:ALLOW_FAILURES -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-ltsc-2021 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
@@ -64,4 +119,3 @@ jobs:
           path: uup-output-*/*
           if-no-files-found: error
           retention-days: 7
-

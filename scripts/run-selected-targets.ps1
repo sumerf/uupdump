@@ -2,7 +2,8 @@ param(
   [string]$Target = "win11-25h2",
   [string]$Arch = "amd64",
   [string]$Lang = "zh-cn",
-  [switch]$All
+  [switch]$All,
+  [switch]$AllowFailures
 )
 
 $ErrorActionPreference = "Stop"
@@ -86,6 +87,9 @@ foreach ($targetId in $selectedTargets) {
   catch {
     Write-Error $_
     $failures += $targetId
+    if (-not $AllowFailures) {
+      break
+    }
   }
   finally {
     Write-Host "::endgroup::"

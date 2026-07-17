@@ -34,3 +34,4 @@ jobs:
       arch: amd64
       lang: ${{ github.event.inputs.lang || 'zh-cn' }}
       all: true
+      allow-failures: true

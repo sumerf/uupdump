@@ -61,7 +61,7 @@ npm run build:uup
 - `win10-22h2`: Windows 10 22H2
 - `win10-ltsc-2021`: Windows 10 LTSC 2021
 
-定时运行时会依次尝试构建以上全部目标。手动选择单个目标时只会创建一个 Actions job；选择 `all` 或定时触发时才会顺序构建全部目标。
+定时运行和总入口会依次尝试构建以上全部目标。GitHub Actions 页面里会显示一个 `build` job，并在里面按步骤显示 `Build win11-25h2`、`Build win11-26h1` 等目标。
 
 Release 的 tag 会自动生成，例如：
 
