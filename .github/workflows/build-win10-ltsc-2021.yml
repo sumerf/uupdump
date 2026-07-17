@@ -8,6 +8,18 @@ on:
         description: Language pack
         required: true
         default: zh-cn
+        type: choice
+        options:
+          - zh-cn
+          - en-us
+          - zh-tw
+          - ja-jp
+          - ko-kr
+          - de-de
+          - fr-fr
+          - es-es
+          - ru-ru
+          - pt-br
 
 permissions:
   contents: write
@@ -20,4 +32,3 @@ jobs:
       arch: amd64
       lang: ${{ github.event.inputs.lang || 'zh-cn' }}
       all: false
-

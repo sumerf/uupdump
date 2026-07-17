@@ -33,6 +33,19 @@ npm run build:uup
 
 `Build UUP ISO` 是总入口，用于手动 `all` 或每月自动构建；总入口固定使用 `amd64`，避免显示不适用于部分目标的架构选项。
 
+语言下拉目前包含：
+
+- `zh-cn`: 中文简体
+- `en-us`: English (United States)
+- `zh-tw`: 中文繁体
+- `ja-jp`: Japanese
+- `ko-kr`: Korean
+- `de-de`: German
+- `fr-fr`: French
+- `es-es`: Spanish
+- `ru-ru`: Russian
+- `pt-br`: Portuguese (Brazil)
+
 工作流也会在每月第二个周二 18:00 UTC 自动运行一次。构建完成后，ISO、`IMAGE_INFO.txt`、`metadata.json` 和 `SHA256SUMS.txt` 会自动挂到 GitHub Release，同时也会作为 artifact 上传，保留 7 天。
 
 手动运行时可以选择这些目标：

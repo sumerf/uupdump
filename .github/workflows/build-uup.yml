@@ -20,6 +20,18 @@ on:
         description: Language pack
         required: true
         default: zh-cn
+        type: choice
+        options:
+          - zh-cn
+          - en-us
+          - zh-tw
+          - ja-jp
+          - ko-kr
+          - de-de
+          - fr-fr
+          - es-es
+          - ru-ru
+          - pt-br
   schedule:
     - cron: "0 18 8-14 * 2"
 
