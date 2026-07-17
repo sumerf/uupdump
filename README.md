@@ -67,7 +67,7 @@ npm run build:uup
 - `win10-22h2`: Windows 10 22H2
 - `win10-ltsc-2021`: Windows 10 LTSC 2021
 
-定时运行和总入口会依次尝试构建以上全部目标。GitHub Actions 页面里会显示一个 `build` job，并在里面按步骤显示 `Build win11-25h2`、`Build win11-26h1` 等目标。
+定时运行和总入口会依次尝试构建以上全部目标。GitHub Actions 页面里会显示一个 `build` job，并在里面按步骤显示 `Build win11-25h2`、`Build win11-26h1` 等目标。总入口允许单个目标失败；如果 UUP dump 暂时没有提供某个 LTSC 版本，其他目标仍会继续构建并发布。
 
 Release 的 tag 会自动生成，例如：
 
@@ -97,6 +97,8 @@ xxx.iso.part002
 
 - 普通目标：`ALL`，构建该语言下全部可用版本
 - LTSC 目标：`LTSC`，尝试构建 `ENTERPRISES` 和 `IOTENTERPRISES`
+
+LTSC 是否能生成取决于 UUP dump 当前构建和语言是否列出 `ENTERPRISES` / `IOTENTERPRISES`。如果接口没有提供这些 edition，单独运行 LTSC workflow 会失败，总入口会跳过失败目标并继续后面的构建。
 
 也可以本地指定：
 

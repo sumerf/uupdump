@@ -105,6 +105,9 @@ foreach ($targetId in $selectedTargets) {
   }
 }
 
-if ($failures.Count -gt 0) {
+if ($failures.Count -gt 0 -and -not $AllowFailures) {
   throw "Failed targets: $($failures -join ', ')"
+}
+elseif ($failures.Count -gt 0) {
+  Write-Warning "Failed targets ignored because AllowFailures is enabled: $($failures -join ', ')"
 }
