@@ -82,6 +82,10 @@ foreach ($targetId in $selectedTargets) {
     if ($LASTEXITCODE -ne 0) {
       throw "Release publish failed for $targetId with exit code $LASTEXITCODE"
     }
+
+    Write-Host "Cleaning workspace for $targetId after release publish."
+    Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $outputDir -Recurse -Force -ErrorAction SilentlyContinue
   }
   catch {
     Write-Error $_
