@@ -10,6 +10,21 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Set-ConfigValue {
+  param(
+    [string]$Content,
+    [string]$Key,
+    [string]$Value
+  )
+
+  $pattern = "(?m)^$([regex]::Escape($Key))\s*=.*$"
+  if ($Content -match $pattern) {
+    return $Content -replace $pattern, ("{0}={1}" -f $Key.PadRight(13), $Value)
+  }
+
+  return $Content
+}
+
 function Patch-UupScripts {
   param(
     [string]$Root
@@ -48,19 +63,11 @@ if (-not (Get-Command Get-FileHash -ErrorAction SilentlyContinue)) {
   }
 }
 
-function Set-ConfigValue {
-  param(
-    [string]$Content,
-    [string]$Key,
-    [string]$Value
-  )
+'@
 
-  $pattern = "(?m)^$([regex]::Escape($Key))\s*=.*$"
-  if ($Content -match $pattern) {
-    return $Content -replace $pattern, ("{0}={1}" -f $Key.PadRight(13), $Value)
+    Set-Content -LiteralPath $script.FullName -Value ($shim + $content) -Encoding UTF8
+    Write-Host "Patched PowerShell hash compatibility in $($script.FullName)"
   }
-
-  return $Content
 }
 
 function Set-UupConvertOptions {
@@ -88,13 +95,6 @@ function Set-UupConvertOptions {
   Set-Content -LiteralPath $config.FullName -Value $content -Encoding ASCII
 
   Write-Host "Configured UUP options: AddUpdates=$IncludeUpdates Cleanup=$Cleanup NetFx3=$NetFx3 ImageFormat=$ImageFormat"
-}
-
-'@
-
-    Set-Content -LiteralPath $script.FullName -Value ($shim + $content) -Encoding UTF8
-    Write-Host "Patched PowerShell hash compatibility in $($script.FullName)"
-  }
 }
 
 $workPath = Resolve-Path -LiteralPath $WorkDir
