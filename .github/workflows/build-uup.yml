@@ -59,8 +59,6 @@ jobs:
             search: Windows 10 LTSC 2021
             edition: LTSC
 
-    if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
-
     env:
       UUP_TARGET: ${{ matrix.target }}
       UUP_SEARCH: ${{ matrix.search }}
@@ -70,28 +68,34 @@ jobs:
 
     steps:
       - name: Checkout
+        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Resolve latest UUP build
+        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         shell: pwsh
         run: npm run resolve
 
       - name: Build ISO
+        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         shell: pwsh
         run: npm run build:uup
 
       - name: Publish GitHub Release
+        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run release
 
       - name: Upload ISO artifact
+        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         uses: actions/upload-artifact@v4
         with:
           name: uup-iso
