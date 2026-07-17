@@ -37,68 +37,33 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 360
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        include:
-          - target: win11-25h2
-            search: Windows 11 25H2
-            edition: ALL
-          - target: win11-26h1
-            search: Windows 11 26H1
-            edition: ALL
-          - target: win11-ltsc-2024
-            search: Windows 11 LTSC 2024
-            edition: LTSC
-          - target: win10-22h2
-            search: Windows 10 22H2
-            edition: ALL
-          - target: win10-ltsc-2021
-            search: Windows 10 LTSC 2021
-            edition: LTSC
-
+    timeout-minutes: 1440
     env:
-      UUP_TARGET: ${{ matrix.target }}
-      UUP_SEARCH: ${{ matrix.search }}
-      UUP_ARCH: ${{ github.event.inputs.arch || 'amd64' }}
-      UUP_LANG: ${{ github.event.inputs.lang || 'zh-cn' }}
-      UUP_EDITION: ${{ matrix.edition }}
+      SELECTED_TARGET: ${{ github.event.inputs.target || 'all' }}
+      SELECTED_ARCH: ${{ github.event.inputs.arch || 'amd64' }}
+      SELECTED_LANG: ${{ github.event.inputs.lang || 'zh-cn' }}
 
     steps:
       - name: Checkout
-        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Resolve latest UUP build
-        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
-        shell: pwsh
-        run: npm run resolve
-
-      - name: Build ISO
-        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
-        shell: pwsh
-        run: npm run build:uup
-
-      - name: Publish GitHub Release
-        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
+      - name: Build and publish selected target
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run release
+        run: |
+          $all = "${{ github.event_name }}" -eq "schedule" -or $env:SELECTED_TARGET -eq "all"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -All:$all
 
       - name: Upload ISO artifact
-        if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
         uses: actions/upload-artifact@v4
         with:
           name: uup-iso
-          path: uup-output/*
+          path: uup-output-*/*
           if-no-files-found: error
           retention-days: 7

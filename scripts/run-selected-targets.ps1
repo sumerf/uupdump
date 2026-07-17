@@ -1,0 +1,88 @@
+param(
+  [string]$Target = "win11-25h2",
+  [string]$Arch = "amd64",
+  [string]$Lang = "zh-cn",
+  [switch]$All
+)
+
+$ErrorActionPreference = "Stop"
+
+$targets = [ordered]@{
+  "win11-25h2" = @{
+    Search = "Windows 11 25H2"
+    Edition = "ALL"
+  }
+  "win11-26h1" = @{
+    Search = "Windows 11 26H1"
+    Edition = "ALL"
+  }
+  "win11-ltsc-2024" = @{
+    Search = "Windows 11 LTSC 2024"
+    Edition = "LTSC"
+  }
+  "win10-22h2" = @{
+    Search = "Windows 10 22H2"
+    Edition = "ALL"
+  }
+  "win10-ltsc-2021" = @{
+    Search = "Windows 10 LTSC 2021"
+    Edition = "LTSC"
+  }
+}
+
+if ($All -or $Target -eq "all") {
+  $selectedTargets = @($targets.Keys)
+}
+elseif ($targets.Contains($Target)) {
+  $selectedTargets = @($Target)
+}
+else {
+  throw "Unknown target '$Target'. Available: all, $($targets.Keys -join ', ')"
+}
+
+$failures = @()
+
+foreach ($targetId in $selectedTargets) {
+  $config = $targets[$targetId]
+  $workDir = "uup-work-$targetId"
+  $outputDir = "uup-output-$targetId"
+
+  Write-Host "::group::Build $targetId"
+  try {
+    Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $outputDir -Recurse -Force -ErrorAction SilentlyContinue
+
+    $env:UUP_TARGET = $targetId
+    $env:UUP_SEARCH = $config.Search
+    $env:UUP_ARCH = $Arch
+    $env:UUP_LANG = $Lang
+    $env:UUP_EDITION = $config.Edition
+    $env:UUP_OUT_DIR = $workDir
+
+    npm run resolve
+    if ($LASTEXITCODE -ne 0) {
+      throw "Resolve failed for $targetId with exit code $LASTEXITCODE"
+    }
+
+    pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-uup-build.ps1 -WorkDir $workDir -OutputDir $outputDir
+    if ($LASTEXITCODE -ne 0) {
+      throw "Build failed for $targetId with exit code $LASTEXITCODE"
+    }
+
+    pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/publish-release.ps1 -OutputDir $outputDir
+    if ($LASTEXITCODE -ne 0) {
+      throw "Release publish failed for $targetId with exit code $LASTEXITCODE"
+    }
+  }
+  catch {
+    Write-Error $_
+    $failures += $targetId
+  }
+  finally {
+    Write-Host "::endgroup::"
+  }
+}
+
+if ($failures.Count -gt 0) {
+  throw "Failed targets: $($failures -join ', ')"
+}

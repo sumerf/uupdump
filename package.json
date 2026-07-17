@@ -6,7 +6,8 @@
   "scripts": {
     "resolve": "node scripts/resolve-uup.mjs",
     "build:uup": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-uup-build.ps1",
-    "release": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/publish-release.ps1"
+    "release": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/publish-release.ps1",
+    "build:selected": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1"
   },
   "engines": {
     "node": ">=20"

@@ -36,7 +36,7 @@ npm run build:uup
 - `win10-22h2`: Windows 10 22H2
 - `win10-ltsc-2021`: Windows 10 LTSC 2021
 
-定时运行时会按矩阵尝试构建以上全部目标。矩阵设置了 `fail-fast: false` 和 `max-parallel: 1`，所以会一个接一个运行；某个目标失败不会取消后面的目标。
+定时运行时会依次尝试构建以上全部目标。手动选择单个目标时只会创建一个 Actions job；选择 `all` 或定时触发时才会顺序构建全部目标。
 
 Release 的 tag 会自动生成，例如：
 
