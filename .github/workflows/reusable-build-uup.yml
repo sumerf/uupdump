@@ -12,6 +12,18 @@ on:
       lang:
         required: true
         type: string
+      include-updates:
+        required: true
+        type: boolean
+      cleanup:
+        required: true
+        type: boolean
+      netfx3:
+        required: true
+        type: boolean
+      image-format:
+        required: true
+        type: string
       all:
         required: true
         type: boolean
@@ -31,6 +43,10 @@ jobs:
       SELECTED_TARGET: ${{ inputs.target }}
       SELECTED_ARCH: ${{ inputs.arch }}
       SELECTED_LANG: ${{ inputs.lang }}
+      SELECTED_INCLUDE_UPDATES: ${{ inputs.include-updates }}
+      SELECTED_CLEANUP: ${{ inputs.cleanup }}
+      SELECTED_NETFX3: ${{ inputs.netfx3 }}
+      SELECTED_IMAGE_FORMAT: ${{ inputs.image-format }}
 
     steps:
       - name: Checkout
@@ -49,6 +65,10 @@ jobs:
           "- Target: ``$env:SELECTED_TARGET``" >> $env:GITHUB_STEP_SUMMARY
           "- Architecture: ``$env:SELECTED_ARCH``" >> $env:GITHUB_STEP_SUMMARY
           "- Language: ``$env:SELECTED_LANG``" >> $env:GITHUB_STEP_SUMMARY
+          "- Include updates: ``$env:SELECTED_INCLUDE_UPDATES``" >> $env:GITHUB_STEP_SUMMARY
+          "- Component cleanup: ``$env:SELECTED_CLEANUP``" >> $env:GITHUB_STEP_SUMMARY
+          "- .NET Framework 3.5: ``$env:SELECTED_NETFX3``" >> $env:GITHUB_STEP_SUMMARY
+          "- Image format: ``$env:SELECTED_IMAGE_FORMAT``" >> $env:GITHUB_STEP_SUMMARY
           "- Mode: ``$(if ('${{ inputs.all }}' -eq 'true') { 'all targets' } else { 'single target' })``" >> $env:GITHUB_STEP_SUMMARY
           Write-Host "Target: $env:SELECTED_TARGET"
           Write-Host "Architecture: $env:SELECTED_ARCH"
@@ -60,7 +80,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG
+          $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
+          $cleanup = $env:SELECTED_CLEANUP -eq "true"
+          $netfx3 = $env:SELECTED_NETFX3 -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3
 
       - name: Upload selected target artifact
         if: ${{ !inputs.all }}
@@ -79,7 +102,10 @@ jobs:
           ALLOW_FAILURES: ${{ inputs.allow-failures }}
         run: |
           $allowFailures = $env:ALLOW_FAILURES -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-25h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+          $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
+          $cleanup = $env:SELECTED_CLEANUP -eq "true"
+          $netfx3 = $env:SELECTED_NETFX3 -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-25h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
 
       - name: Upload win11-25h2 artifact
         if: ${{ inputs.all }}
@@ -98,7 +124,10 @@ jobs:
           ALLOW_FAILURES: ${{ inputs.allow-failures }}
         run: |
           $allowFailures = $env:ALLOW_FAILURES -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-26h1 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+          $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
+          $cleanup = $env:SELECTED_CLEANUP -eq "true"
+          $netfx3 = $env:SELECTED_NETFX3 -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-26h1 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
 
       - name: Upload win11-26h1 artifact
         if: ${{ inputs.all }}
@@ -117,7 +146,10 @@ jobs:
           ALLOW_FAILURES: ${{ inputs.allow-failures }}
         run: |
           $allowFailures = $env:ALLOW_FAILURES -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-ltsc-2024 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+          $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
+          $cleanup = $env:SELECTED_CLEANUP -eq "true"
+          $netfx3 = $env:SELECTED_NETFX3 -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-ltsc-2024 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
 
       - name: Upload win11-ltsc-2024 artifact
         if: ${{ inputs.all }}
@@ -136,7 +168,10 @@ jobs:
           ALLOW_FAILURES: ${{ inputs.allow-failures }}
         run: |
           $allowFailures = $env:ALLOW_FAILURES -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-22h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+          $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
+          $cleanup = $env:SELECTED_CLEANUP -eq "true"
+          $netfx3 = $env:SELECTED_NETFX3 -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-22h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
 
       - name: Upload win10-22h2 artifact
         if: ${{ inputs.all }}
@@ -155,7 +190,10 @@ jobs:
           ALLOW_FAILURES: ${{ inputs.allow-failures }}
         run: |
           $allowFailures = $env:ALLOW_FAILURES -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-ltsc-2021 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -AllowFailures:$allowFailures
+          $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
+          $cleanup = $env:SELECTED_CLEANUP -eq "true"
+          $netfx3 = $env:SELECTED_NETFX3 -eq "true"
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-ltsc-2021 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
 
       - name: Upload win10-ltsc-2021 artifact
         if: ${{ inputs.all }}

@@ -46,6 +46,13 @@ npm run build:uup
 - `ru-ru`: Russian
 - `pt-br`: Portuguese (Brazil)
 
+转换选项：
+
+- `Include updates`: 包括更新，默认开启，对应 UUP dump 的 `AddUpdates=1`。
+- `Run component cleanup`: 运行组件清理，默认关闭，对应 `Cleanup=1`。
+- `Integrate .NET Framework 3.5`: 集成 .NET Framework 3.5，默认关闭，对应 `NetFx3=1`。
+- `Install image format`: 安装映像格式，默认 `wim`；选择 `esd` 时启用固实压缩，对应 `wim2esd=1` 和 `vwim2esd=1`。
+
 工作流也会在每月第二个周二 18:00 UTC 自动运行一次。构建完成后，ISO、`IMAGE_INFO.txt`、`metadata.json` 和 `SHA256SUMS.txt` 会自动挂到 GitHub Release，同时也会作为 Actions artifact 上传。
 
 保存策略：

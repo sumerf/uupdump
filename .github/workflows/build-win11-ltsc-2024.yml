@@ -20,6 +20,29 @@ on:
           - es-es
           - ru-ru
           - pt-br
+      include_updates:
+        description: Include updates
+        required: true
+        default: true
+        type: boolean
+      cleanup:
+        description: Run component cleanup
+        required: true
+        default: false
+        type: boolean
+      netfx3:
+        description: Integrate .NET Framework 3.5
+        required: true
+        default: false
+        type: boolean
+      image_format:
+        description: Install image format
+        required: true
+        default: wim
+        type: choice
+        options:
+          - wim
+          - esd
 
 permissions:
   contents: write
@@ -31,4 +54,8 @@ jobs:
       target: win11-ltsc-2024
       arch: amd64
       lang: ${{ github.event.inputs.lang || 'zh-cn' }}
+      include-updates: ${{ github.event.inputs.include_updates != 'false' }}
+      cleanup: ${{ github.event.inputs.cleanup == 'true' }}
+      netfx3: ${{ github.event.inputs.netfx3 == 'true' }}
+      image-format: ${{ github.event.inputs.image_format || 'wim' }}
       all: false

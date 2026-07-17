@@ -50,7 +50,15 @@ const search = args.search ?? process.env.UUP_SEARCH ?? target?.search ?? "Windo
 const language = (args.lang ?? process.env.UUP_LANG ?? "zh-cn").toLowerCase();
 const editionInput = (args.edition ?? process.env.UUP_EDITION ?? target?.edition ?? "ALL").toUpperCase();
 const requestedEdition = editionInput === "LTSC" ? "ENTERPRISES,IOTENTERPRISES" : editionInput;
+const imageFormat = (args.imageFormat ?? process.env.UUP_IMAGE_FORMAT ?? "wim").toLowerCase();
+const includeUpdates = parseBoolean(args.includeUpdates ?? process.env.UUP_INCLUDE_UPDATES ?? "1");
+const cleanup = parseBoolean(args.cleanup ?? process.env.UUP_CLEANUP ?? "0");
+const netFx3 = parseBoolean(args.netFx3 ?? process.env.UUP_NETFX3 ?? "0");
 const outDir = args.outDir ?? process.env.UUP_OUT_DIR ?? "uup-work";
+
+if (!["wim", "esd"].includes(imageFormat)) {
+  throw new Error(`Unknown image format "${imageFormat}". Available: wim, esd`);
+}
 
 await mkdir(outDir, { recursive: true });
 
@@ -75,6 +83,13 @@ const metadata = {
   language,
   editionInput,
   editions,
+  convertOptions: {
+    includeUpdates,
+    cleanup,
+    netFx3,
+    imageFormat,
+    solidCompression: imageFormat === "esd"
+  },
   zipPath,
   zipFile: basename(zipPath),
   source: "https://uupdump.net/",
@@ -94,6 +109,10 @@ function parseArgs(argv) {
     result[key] = value;
   }
   return result;
+}
+
+function parseBoolean(value) {
+  return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
 }
 
 async function getJson(url) {

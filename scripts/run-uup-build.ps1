@@ -1,6 +1,11 @@
 param(
   [string]$WorkDir = "uup-work",
-  [string]$OutputDir = "uup-output"
+  [string]$OutputDir = "uup-output",
+  [ValidateSet("wim", "esd")]
+  [string]$ImageFormat = "wim",
+  [bool]$IncludeUpdates = $true,
+  [bool]$Cleanup = $false,
+  [bool]$NetFx3 = $false
 )
 
 $ErrorActionPreference = "Stop"
@@ -43,6 +48,48 @@ if (-not (Get-Command Get-FileHash -ErrorAction SilentlyContinue)) {
   }
 }
 
+function Set-ConfigValue {
+  param(
+    [string]$Content,
+    [string]$Key,
+    [string]$Value
+  )
+
+  $pattern = "(?m)^$([regex]::Escape($Key))\s*=.*$"
+  if ($Content -match $pattern) {
+    return $Content -replace $pattern, ("{0}={1}" -f $Key.PadRight(13), $Value)
+  }
+
+  return $Content
+}
+
+function Set-UupConvertOptions {
+  param(
+    [string]$Root,
+    [ValidateSet("wim", "esd")]
+    [string]$ImageFormat,
+    [bool]$IncludeUpdates,
+    [bool]$Cleanup,
+    [bool]$NetFx3
+  )
+
+  $config = Get-ChildItem -LiteralPath $Root -Recurse -Filter "ConvertConfig.ini" -File | Select-Object -First 1
+  if (-not $config) {
+    throw "ConvertConfig.ini was not found in the UUP package."
+  }
+
+  $useEsd = if ($ImageFormat -eq "esd") { "1" } else { "0" }
+  $content = Get-Content -LiteralPath $config.FullName -Raw
+  $content = Set-ConfigValue -Content $content -Key "AddUpdates" -Value $(if ($IncludeUpdates) { "1" } else { "0" })
+  $content = Set-ConfigValue -Content $content -Key "Cleanup" -Value $(if ($Cleanup) { "1" } else { "0" })
+  $content = Set-ConfigValue -Content $content -Key "NetFx3" -Value $(if ($NetFx3) { "1" } else { "0" })
+  $content = Set-ConfigValue -Content $content -Key "wim2esd" -Value $useEsd
+  $content = Set-ConfigValue -Content $content -Key "vwim2esd" -Value $useEsd
+  Set-Content -LiteralPath $config.FullName -Value $content -Encoding ASCII
+
+  Write-Host "Configured UUP options: AddUpdates=$IncludeUpdates Cleanup=$Cleanup NetFx3=$NetFx3 ImageFormat=$ImageFormat"
+}
+
 '@
 
     Set-Content -LiteralPath $script.FullName -Value ($shim + $content) -Encoding UTF8
@@ -75,6 +122,7 @@ if (-not $converter) {
 }
 
 Patch-UupScripts -Root $extractPath
+Set-UupConvertOptions -Root $extractPath -ImageFormat $ImageFormat -IncludeUpdates $IncludeUpdates -Cleanup $Cleanup -NetFx3 $NetFx3
 
 Push-Location -LiteralPath $converter.DirectoryName
 try {

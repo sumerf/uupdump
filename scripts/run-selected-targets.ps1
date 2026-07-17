@@ -2,6 +2,11 @@ param(
   [string]$Target = "win11-25h2",
   [string]$Arch = "amd64",
   [string]$Lang = "zh-cn",
+  [ValidateSet("wim", "esd")]
+  [string]$ImageFormat = "wim",
+  [bool]$IncludeUpdates = $true,
+  [bool]$Cleanup = $false,
+  [bool]$NetFx3 = $false,
   [switch]$All,
   [switch]$AllowFailures
 )
@@ -68,13 +73,17 @@ foreach ($targetId in $selectedTargets) {
     $env:UUP_LANG = $Lang
     $env:UUP_EDITION = $config.Edition
     $env:UUP_OUT_DIR = $workDir
+    $env:UUP_IMAGE_FORMAT = $ImageFormat
+    $env:UUP_INCLUDE_UPDATES = if ($IncludeUpdates) { "1" } else { "0" }
+    $env:UUP_CLEANUP = if ($Cleanup) { "1" } else { "0" }
+    $env:UUP_NETFX3 = if ($NetFx3) { "1" } else { "0" }
 
     npm run resolve
     if ($LASTEXITCODE -ne 0) {
       throw "Resolve failed for $targetId with exit code $LASTEXITCODE"
     }
 
-    pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-uup-build.ps1 -WorkDir $workDir -OutputDir $outputDir
+    pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-uup-build.ps1 -WorkDir $workDir -OutputDir $outputDir -ImageFormat $ImageFormat -IncludeUpdates:$IncludeUpdates -Cleanup:$Cleanup -NetFx3:$NetFx3
     if ($LASTEXITCODE -ne 0) {
       throw "Build failed for $targetId with exit code $LASTEXITCODE"
     }
