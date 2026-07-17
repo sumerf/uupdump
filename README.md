@@ -46,7 +46,12 @@ npm run build:uup
 - `ru-ru`: Russian
 - `pt-br`: Portuguese (Brazil)
 
-工作流也会在每月第二个周二 18:00 UTC 自动运行一次。构建完成后，ISO、`IMAGE_INFO.txt`、`metadata.json` 和 `SHA256SUMS.txt` 会自动挂到 GitHub Release，同时也会作为 artifact 上传，保留 7 天。
+工作流也会在每月第二个周二 18:00 UTC 自动运行一次。构建完成后，ISO、`IMAGE_INFO.txt`、`metadata.json` 和 `SHA256SUMS.txt` 会自动挂到 GitHub Release，同时也会作为 Actions artifact 上传。
+
+保存策略：
+
+- GitHub Release 附件：作为主要下载位置保存；发布同一目标的新 Release 后，旧 Release 会被自动删除。
+- Actions artifact：只是每次 workflow run 的临时备份，受 `retention-days: 7` 控制，7 天后自动过期删除。
 
 总入口会构建这些目标：
 
