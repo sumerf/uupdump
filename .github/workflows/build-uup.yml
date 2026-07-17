@@ -1,21 +1,9 @@
 name: Build UUP ISO
-run-name: Build UUP ISO - ${{ github.event.inputs.target || 'monthly-all' }} amd64 ${{ github.event.inputs.lang || 'zh-cn' }}
+run-name: Build all UUP ISOs - amd64 ${{ github.event.inputs.lang || 'zh-cn' }}
 
 on:
   workflow_dispatch:
     inputs:
-      target:
-        description: Windows target
-        required: true
-        default: win11-25h2
-        type: choice
-        options:
-          - all
-          - win11-25h2
-          - win11-26h1
-          - win11-ltsc-2024
-          - win10-22h2
-          - win10-ltsc-2021
       lang:
         description: Language pack
         required: true
@@ -42,7 +30,7 @@ jobs:
   build:
     uses: ./.github/workflows/reusable-build-uup.yml
     with:
-      target: ${{ github.event.inputs.target || 'all' }}
+      target: all
       arch: amd64
       lang: ${{ github.event.inputs.lang || 'zh-cn' }}
-      all: ${{ github.event_name == 'schedule' || github.event.inputs.target == 'all' }}
+      all: true
