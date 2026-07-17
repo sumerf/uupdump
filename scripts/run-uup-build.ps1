@@ -92,9 +92,10 @@ function Set-UupConvertOptions {
   $content = Set-ConfigValue -Content $content -Key "NetFx3" -Value $(if ($NetFx3) { "1" } else { "0" })
   $content = Set-ConfigValue -Content $content -Key "wim2esd" -Value $useEsd
   $content = Set-ConfigValue -Content $content -Key "vwim2esd" -Value $useEsd
+  $content = Set-ConfigValue -Content $content -Key "AutoExit" -Value "1"
   Set-Content -LiteralPath $config.FullName -Value $content -Encoding ASCII
 
-  Write-Host "Configured UUP options: AddUpdates=$IncludeUpdates Cleanup=$Cleanup NetFx3=$NetFx3 ImageFormat=$ImageFormat"
+  Write-Host "Configured UUP options: AddUpdates=$IncludeUpdates Cleanup=$Cleanup NetFx3=$NetFx3 ImageFormat=$ImageFormat AutoExit=True"
 }
 
 $workPath = Resolve-Path -LiteralPath $WorkDir
@@ -128,7 +129,13 @@ Push-Location -LiteralPath $converter.DirectoryName
 try {
   cmd.exe /c "`"$($converter.FullName)`""
   if ($LASTEXITCODE -ne 0) {
-    throw "UUP converter failed with exit code $LASTEXITCODE"
+    $producedIso = Get-ChildItem -LiteralPath $converter.DirectoryName -Filter "*.iso" -File
+    if ($producedIso) {
+      Write-Warning "UUP converter exited with code $LASTEXITCODE after producing ISO output. Continuing."
+    }
+    else {
+      throw "UUP converter failed with exit code $LASTEXITCODE"
+    }
   }
 }
 finally {
