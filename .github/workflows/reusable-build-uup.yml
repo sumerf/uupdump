@@ -89,7 +89,7 @@ jobs:
         if: ${{ !inputs.all }}
         uses: actions/upload-artifact@v4
         with:
-          name: uup-iso-${{ inputs.target }}-${{ inputs.arch }}-${{ inputs.lang }}
+          name: uup-iso-${{ inputs.target }}-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
           path: uup-output-${{ inputs.target }}/*
           if-no-files-found: error
           retention-days: 7
@@ -111,7 +111,7 @@ jobs:
         if: ${{ inputs.all }}
         uses: actions/upload-artifact@v4
         with:
-          name: uup-iso-win11-25h2-${{ inputs.arch }}-${{ inputs.lang }}
+          name: uup-iso-win11-25h2-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
           path: uup-output-win11-25h2/*
           if-no-files-found: ignore
           retention-days: 7
@@ -133,7 +133,7 @@ jobs:
         if: ${{ inputs.all }}
         uses: actions/upload-artifact@v4
         with:
-          name: uup-iso-win11-26h1-${{ inputs.arch }}-${{ inputs.lang }}
+          name: uup-iso-win11-26h1-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
           path: uup-output-win11-26h1/*
           if-no-files-found: ignore
           retention-days: 7
@@ -155,7 +155,7 @@ jobs:
         if: ${{ inputs.all }}
         uses: actions/upload-artifact@v4
         with:
-          name: uup-iso-win11-ltsc-2024-${{ inputs.arch }}-${{ inputs.lang }}
+          name: uup-iso-win11-ltsc-2024-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
           path: uup-output-win11-ltsc-2024/*
           if-no-files-found: ignore
           retention-days: 7
@@ -177,7 +177,7 @@ jobs:
         if: ${{ inputs.all }}
         uses: actions/upload-artifact@v4
         with:
-          name: uup-iso-win10-22h2-${{ inputs.arch }}-${{ inputs.lang }}
+          name: uup-iso-win10-22h2-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
           path: uup-output-win10-22h2/*
           if-no-files-found: ignore
           retention-days: 7
@@ -199,7 +199,7 @@ jobs:
         if: ${{ inputs.all }}
         uses: actions/upload-artifact@v4
         with:
-          name: uup-iso-win10-ltsc-2021-${{ inputs.arch }}-${{ inputs.lang }}
+          name: uup-iso-win10-ltsc-2021-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
           path: uup-output-win10-ltsc-2021/*
           if-no-files-found: ignore
           retention-days: 7

@@ -11,72 +11,6 @@ if (-not $env:GITHUB_TOKEN) {
 $env:GH_TOKEN = $env:GITHUB_TOKEN
 $maxReleaseAssetBytes = 1900MB
 
-$metadataPath = Join-Path $OutputDir "metadata.json"
-if (-not (Test-Path -LiteralPath $metadataPath)) {
-  throw "metadata.json not found in $OutputDir"
-}
-
-$metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
-$editionPart = ($metadata.editions -join "-").ToLowerInvariant()
-if ($metadata.editionInput -eq "ALL") {
-  $editionPart = "all"
-}
-
-$targetPart = if ($metadata.target) { $metadata.target } else { "custom" }
-$tag = "uup-$targetPart-$($metadata.build)-$($metadata.arch)-$($metadata.language)-$editionPart"
-$title = "$($metadata.title) $($metadata.arch) $($metadata.language) $($metadata.editionInput)"
-$notes = @"
-Source: $($metadata.source)
-Build: $($metadata.build)
-Architecture: $($metadata.arch)
-Language: $($metadata.language)
-Editions: $($metadata.editions -join ", ")
-UUP dump UUID: $($metadata.uuid)
-
-Large ISO files are split into .partNNN files because GitHub Release assets have a per-file size limit. Reassemble them in order before use.
-"@
-
-Split-LargeReleaseAssets -Directory $OutputDir -MaxBytes $maxReleaseAssetBytes
-Write-Checksums -Directory $OutputDir
-Write-ImageInfo -Directory $OutputDir -Metadata $metadata -Tag $tag
-
-$releaseExists = $false
-gh release view $tag *> $null
-if ($LASTEXITCODE -eq 0) {
-  $releaseExists = $true
-}
-
-if ($releaseExists) {
-  gh release edit $tag --title $title --notes $notes
-}
-else {
-  gh release create $tag --title $title --notes $notes
-}
-
-if ($LASTEXITCODE -ne 0) {
-  throw "Failed to create or update release $tag"
-}
-
-$assets = Get-ChildItem -LiteralPath $OutputDir -File | Where-Object {
-  $_.Extension -in ".iso", ".json", ".txt" -or $_.Name -match "\.iso\.part\d+$"
-}
-
-if (-not $assets) {
-  throw "No release assets found in $OutputDir"
-}
-
-$assetPaths = $assets | ForEach-Object { $_.FullName }
-gh release upload $tag @assetPaths --clobber
-if ($LASTEXITCODE -ne 0) {
-  throw "Failed to upload release assets for $tag"
-}
-
-Remove-OlderReleases -CurrentTag $tag -Prefix "uup-$targetPart-" -Keep 1
-
-"RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-"RELEASE_URL=https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-Write-Host "Published release: https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag"
-
 function Split-LargeReleaseAssets {
   param(
     [string]$Directory,
@@ -164,6 +98,7 @@ SHA256: $($hash.Hash.ToLowerInvariant())
 "@
   }
 
+  $options = $Metadata.convertOptions
   $info = @"
 UUP Auto Build Image Information
 
@@ -174,6 +109,11 @@ Architecture: $($Metadata.arch)
 Language: $($Metadata.language)
 Edition input: $($Metadata.editionInput)
 Editions: $($Metadata.editions -join ", ")
+Image format: $($options.imageFormat)
+Include updates: $($options.includeUpdates)
+Component cleanup: $($options.cleanup)
+.NET Framework 3.5: $($options.netFx3)
+Solid compression: $($options.solidCompression)
 UUP dump UUID: $($Metadata.uuid)
 Source: $($Metadata.source)
 Created unix: $($Metadata.createdUnix)
@@ -219,3 +159,79 @@ function Remove-OlderReleases {
     }
   }
 }
+
+$metadataPath = Join-Path $OutputDir "metadata.json"
+if (-not (Test-Path -LiteralPath $metadataPath)) {
+  throw "metadata.json not found in $OutputDir"
+}
+
+$metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+$editionPart = ($metadata.editions -join "-").ToLowerInvariant()
+if ($metadata.editionInput -eq "ALL") {
+  $editionPart = "all"
+}
+
+$options = $metadata.convertOptions
+$formatPart = if ($options.imageFormat) { $options.imageFormat } else { "wim" }
+$updatePart = if ($options.includeUpdates) { "upd" } else { "noupd" }
+$cleanupPart = if ($options.cleanup) { "clean" } else { "noclean" }
+$netfx3Part = if ($options.netFx3) { "netfx3" } else { "nonetfx3" }
+$optionsPart = "$formatPart-$updatePart-$cleanupPart-$netfx3Part"
+$targetPart = if ($metadata.target) { $metadata.target } else { "custom" }
+$tag = "uup-$targetPart-$($metadata.build)-$($metadata.arch)-$($metadata.language)-$editionPart-$optionsPart"
+$title = "$($metadata.title) $($metadata.arch) $($metadata.language) $($metadata.editionInput)"
+$notes = @"
+Source: $($metadata.source)
+Build: $($metadata.build)
+Architecture: $($metadata.arch)
+Language: $($metadata.language)
+Editions: $($metadata.editions -join ", ")
+Image format: $formatPart
+Include updates: $($options.includeUpdates)
+Component cleanup: $($options.cleanup)
+.NET Framework 3.5: $($options.netFx3)
+UUP dump UUID: $($metadata.uuid)
+
+Large ISO files are split into .partNNN files because GitHub Release assets have a per-file size limit. Reassemble them in order before use.
+"@
+
+Split-LargeReleaseAssets -Directory $OutputDir -MaxBytes $maxReleaseAssetBytes
+Write-Checksums -Directory $OutputDir
+Write-ImageInfo -Directory $OutputDir -Metadata $metadata -Tag $tag
+
+$releaseExists = $false
+gh release view $tag *> $null
+if ($LASTEXITCODE -eq 0) {
+  $releaseExists = $true
+}
+
+if ($releaseExists) {
+  gh release edit $tag --title $title --notes $notes
+}
+else {
+  gh release create $tag --title $title --notes $notes
+}
+
+if ($LASTEXITCODE -ne 0) {
+  throw "Failed to create or update release $tag"
+}
+
+$assets = Get-ChildItem -LiteralPath $OutputDir -File | Where-Object {
+  $_.Extension -in ".iso", ".json", ".txt" -or $_.Name -match "\.iso\.part\d+$"
+}
+
+if (-not $assets) {
+  throw "No release assets found in $OutputDir"
+}
+
+$assetPaths = $assets | ForEach-Object { $_.FullName }
+gh release upload $tag @assetPaths --clobber
+if ($LASTEXITCODE -ne 0) {
+  throw "Failed to upload release assets for $tag"
+}
+
+Remove-OlderReleases -CurrentTag $tag -Prefix "uup-$targetPart-" -Keep 1
+
+"RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+"RELEASE_URL=https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+Write-Host "Published release: https://github.com/$env:GITHUB_REPOSITORY/releases/tag/$tag"
