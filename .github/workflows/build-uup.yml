@@ -1,4 +1,5 @@
 name: Build UUP ISO
+run-name: Build UUP ISO - ${{ github.event.inputs.target || 'monthly-all' }} ${{ github.event.inputs.arch || 'amd64' }} ${{ github.event.inputs.lang || 'zh-cn' }}
 
 on:
   workflow_dispatch:
@@ -51,6 +52,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Show selected build target
+        shell: pwsh
+        run: |
+          $isAll = "${{ github.event_name }}" -eq "schedule" -or $env:SELECTED_TARGET -eq "all"
+          "### UUP build target" >> $env:GITHUB_STEP_SUMMARY
+          "" >> $env:GITHUB_STEP_SUMMARY
+          "- Target: ``$env:SELECTED_TARGET``" >> $env:GITHUB_STEP_SUMMARY
+          "- Architecture: ``$env:SELECTED_ARCH``" >> $env:GITHUB_STEP_SUMMARY
+          "- Language: ``$env:SELECTED_LANG``" >> $env:GITHUB_STEP_SUMMARY
+          "- Mode: ``$(if ($isAll) { 'all targets' } else { 'single target' })``" >> $env:GITHUB_STEP_SUMMARY
+          Write-Host "Target: $env:SELECTED_TARGET"
+          Write-Host "Architecture: $env:SELECTED_ARCH"
+          Write-Host "Language: $env:SELECTED_LANG"
+          Write-Host "Mode: $(if ($isAll) { 'all targets' } else { 'single target' })"
 
       - name: Build and publish selected target
         shell: pwsh
