@@ -1,0 +1,100 @@
+name: Build UUP ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Windows target
+        required: true
+        default: win11-25h2
+        type: choice
+        options:
+          - all
+          - win11-25h2
+          - win11-26h1
+          - win11-ltsc-2024
+          - win10-22h2
+          - win10-ltsc-2021
+      arch:
+        description: Architecture
+        required: true
+        default: amd64
+        type: choice
+        options:
+          - amd64
+          - arm64
+          - x86
+      lang:
+        description: Language pack
+        required: true
+        default: zh-cn
+  schedule:
+    - cron: "0 18 8-14 * 2"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - target: win11-25h2
+            search: Windows 11 25H2
+            edition: ALL
+          - target: win11-26h1
+            search: Windows 11 26H1
+            edition: ALL
+          - target: win11-ltsc-2024
+            search: Windows 11 LTSC 2024
+            edition: LTSC
+          - target: win10-22h2
+            search: Windows 10 22H2
+            edition: ALL
+          - target: win10-ltsc-2021
+            search: Windows 10 LTSC 2021
+            edition: LTSC
+
+    if: github.event_name == 'schedule' || github.event.inputs.target == 'all' || matrix.target == github.event.inputs.target
+
+    env:
+      UUP_TARGET: ${{ matrix.target }}
+      UUP_SEARCH: ${{ matrix.search }}
+      UUP_ARCH: ${{ github.event.inputs.arch || 'amd64' }}
+      UUP_LANG: ${{ github.event.inputs.lang || 'zh-cn' }}
+      UUP_EDITION: ${{ matrix.edition }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Resolve latest UUP build
+        shell: pwsh
+        run: npm run resolve
+
+      - name: Build ISO
+        shell: pwsh
+        run: npm run build:uup
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uup-iso
+          path: uup-output/*
+          if-no-files-found: error
+          retention-days: 7

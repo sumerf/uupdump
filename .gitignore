@@ -1,0 +1,6 @@
+node_modules/
+uup-output/
+uup-work/
+*.iso
+*.zip
+metadata.json
