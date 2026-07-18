@@ -83,7 +83,16 @@ jobs:
           $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
           $cleanup = $env:SELECTED_CLEANUP -eq "true"
           $netfx3 = $env:SELECTED_NETFX3 -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target $env:SELECTED_TARGET -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -PreserveOutput
+
+      - name: Upload selected target artifact
+        if: ${{ !inputs.all && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uup-iso-${{ inputs.target }}-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
+          path: uup-output-${{ inputs.target }}/*
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Build win11-25h2
         if: ${{ inputs.all }}
@@ -96,7 +105,16 @@ jobs:
           $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
           $cleanup = $env:SELECTED_CLEANUP -eq "true"
           $netfx3 = $env:SELECTED_NETFX3 -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-25h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-25h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures -PreserveOutput
+
+      - name: Upload win11-25h2 artifact
+        if: ${{ inputs.all && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uup-iso-win11-25h2-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
+          path: uup-output-win11-25h2/*
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Build win11-26h1
         if: ${{ inputs.all }}
@@ -109,7 +127,16 @@ jobs:
           $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
           $cleanup = $env:SELECTED_CLEANUP -eq "true"
           $netfx3 = $env:SELECTED_NETFX3 -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-26h1 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win11-26h1 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures -PreserveOutput
+
+      - name: Upload win11-26h1 artifact
+        if: ${{ inputs.all && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uup-iso-win11-26h1-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
+          path: uup-output-win11-26h1/*
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Build win10-22h2
         if: ${{ inputs.all }}
@@ -122,4 +149,13 @@ jobs:
           $includeUpdates = $env:SELECTED_INCLUDE_UPDATES -eq "true"
           $cleanup = $env:SELECTED_CLEANUP -eq "true"
           $netfx3 = $env:SELECTED_NETFX3 -eq "true"
-          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-22h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures
+          pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/run-selected-targets.ps1 -Target win10-22h2 -Arch $env:SELECTED_ARCH -Lang $env:SELECTED_LANG -ImageFormat $env:SELECTED_IMAGE_FORMAT -IncludeUpdates:$includeUpdates -Cleanup:$cleanup -NetFx3:$netfx3 -AllowFailures:$allowFailures -PreserveOutput
+
+      - name: Upload win10-22h2 artifact
+        if: ${{ inputs.all && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uup-iso-win10-22h2-${{ inputs.arch }}-${{ inputs.lang }}-${{ inputs.image-format }}
+          path: uup-output-win10-22h2/*
+          if-no-files-found: ignore
+          retention-days: 7

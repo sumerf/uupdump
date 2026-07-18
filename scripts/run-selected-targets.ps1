@@ -8,7 +8,8 @@ param(
   [bool]$Cleanup = $false,
   [bool]$NetFx3 = $false,
   [switch]$All,
-  [switch]$AllowFailures
+  [switch]$AllowFailures,
+  [switch]$PreserveOutput
 )
 
 $ErrorActionPreference = "Stop"
@@ -104,9 +105,14 @@ foreach ($targetId in $selectedTargets) {
       throw "Release publish failed for $targetId with exit code $LASTEXITCODE"
     }
 
-    Write-Host "Cleaning workspace for $targetId after release publish."
-    Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item -LiteralPath $outputDir -Recurse -Force -ErrorAction SilentlyContinue
+    if ($PreserveOutput) {
+      Write-Host "Preserving workspace for $targetId so the workflow can upload artifacts."
+    }
+    else {
+      Write-Host "Cleaning workspace for $targetId after release publish."
+      Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
+      Remove-Item -LiteralPath $outputDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
   }
   catch {
     Write-Error $_
